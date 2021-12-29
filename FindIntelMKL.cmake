@@ -19,7 +19,7 @@ include( CMakeFindDependencyMacro )
 
 # SANITY CHECK
 if( "ilp64" IN_LIST IntelMKL_FIND_COMPONENTS AND "lp64" IN_LIST IntelMKL_FIND_COMPONENTS )
-  message( FATAL_ERROR "IntelMKL cannot link to both ILP64 and LP64 iterfaces" )
+  message( FATAL_ERROR "IntelMKL cannot link to both ILP64 and LP64 interfaces" )
 endif()
 
 if( "scalapack" IN_LIST IntelMKL_FIND_COMPONENTS AND NOT ("blacs" IN_LIST IntelMKL_FIND_COMPONENTS) )
