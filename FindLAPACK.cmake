@@ -13,7 +13,7 @@ include( ${CMAKE_CURRENT_LIST_DIR}/LinAlgModulesMacros.cmake  )
 
 # SANITY CHECK
 if( "ilp64" IN_LIST LAPACK_FIND_COMPONENTS AND "lp64" IN_LIST LAPACK_FIND_COMPONENTS )
-  message( FATAL_ERROR "LAPACK cannot link to both ILP64 and LP64 iterfaces" )
+  message( FATAL_ERROR "LAPACK cannot link to both ILP64 and LP64 interfaces" )
 endif()
 
 
@@ -49,7 +49,7 @@ if( NOT LAPACK_LIBRARIES )
   set( LAPACK_LIBRARIES           ${BLAS_LIBRARIES}           )
   set( LAPACK_INCLUDE_DIRS        ${BLAS_INCLUDE_DIRS}        )
   set( LAPACK_COMPILE_DEFINITIONS ${BLAS_COMPILE_DEFINITIONS} )
-  check_dpstrf_exists( LAPACK_LIBRARIES 
+  check_dgesvd_exists( LAPACK_LIBRARIES
     BLAS_HAS_LAPACK LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
   )
   
@@ -120,7 +120,7 @@ endif()
 if( BLAS_HAS_LAPACK )
   set( LAPACK_LINK_OK TRUE )
 else()
-  check_dpstrf_exists( LAPACK_LIBRARIES 
+  check_dgesvd_exists( LAPACK_LIBRARIES
     LAPACK_LINK_OK LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
   )
 endif()

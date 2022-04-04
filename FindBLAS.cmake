@@ -13,7 +13,7 @@ include( ${CMAKE_CURRENT_LIST_DIR}/LinAlgModulesMacros.cmake  )
 
 # SANITY CHECK: Make sure only one integer interface is requested
 if( "ilp64" IN_LIST BLAS_FIND_COMPONENTS AND "lp64" IN_LIST BLAS_FIND_COMPONENTS )
-  message( FATAL_ERROR "BLAS cannot link to both ILP64 and LP64 iterfaces" )
+  message( FATAL_ERROR "BLAS cannot link to both ILP64 and LP64 interfaces" )
 endif()
 
 
