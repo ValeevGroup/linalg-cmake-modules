@@ -1,6 +1,6 @@
 set( LAPACK_UTILITY_CMAKE_FILE_DIR ${CMAKE_CURRENT_LIST_DIR} )
 
-function( check_dpstrf_exists _libs _link_ok _uses_lower _uses_underscore )
+function( check_dgesvd_exists _libs _link_ok _uses_lower _uses_underscore )
 
 include( ${LAPACK_UTILITY_CMAKE_FILE_DIR}/CommonFunctions.cmake )
 
@@ -10,20 +10,20 @@ set( ${_uses_underscore} )
 
 foreach( _uplo LOWER UPPER )
 
-  set( _dpstrf_name_template "dpstrf" )
-  string( TO${_uplo} ${_dpstrf_name_template} _dpstrf_name_uplo )
+  set( _dgesvd_name_template "dgesvd" )
+  string( TO${_uplo} ${_dgesvd_name_template} _dgesvd_name_uplo )
   
   foreach( _under UNDERSCORE NO_UNDERSCORE )
 
     set( _item LAPACK_${_uplo}_${_under} )
     if( _under EQUAL "UNDERSCORE" )
-      set( _dpstrf_name "${_dpstrf_name_uplo}_" )
+      set( _dgesvd_name "${_dgesvd_name_uplo}_" )
     else()
-      set( _dpstrf_name "${_dpstrf_name_uplo}_" )
+      set( _dgesvd_name "${_dgesvd_name_uplo}_" )
     endif()
 
     check_function_exists_w_results( 
-      "${${_libs}}" ${_dpstrf_name} _compile_output _compile_result 
+      "${${_libs}}" ${_dgesvd_name} _compile_output _compile_result
     )
 
     message( STATUS "Performing Test ${_item}" )
@@ -44,7 +44,7 @@ foreach( _uplo LOWER UPPER )
 
       # Recheck Compiliation
       check_function_exists_w_results( 
-        "${${_libs}}" ${_dpstrf_name} _compile_output _compile_result 
+        "${${_libs}}" ${_dgesvd_name} _compile_output _compile_result
       )
 
       if( _compile_result )
@@ -65,8 +65,8 @@ foreach( _uplo LOWER UPPER )
     break()
   endif()
 
-  unset( _dpstrf_name_template )
-  unset( _dpstrf_name_uplo     )
+  unset( _dgesvd_name_template )
+  unset( _dgesvd_name_uplo     )
 endforeach() 
 
 #cmake_pop_check_state()
