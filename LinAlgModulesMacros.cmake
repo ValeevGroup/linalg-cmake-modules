@@ -46,7 +46,6 @@ set( LINALG_UTIL_FILES
      util/ilp64_checker.c
      util/lapack_ilp64_checker.c
      util/openblas_int_size.c
-     util/BLASUtilities.cmake
      util/CommonFunctions.cmake
      util/IntrospectMPI.cmake
      util/IntrospectOpenMP.cmake

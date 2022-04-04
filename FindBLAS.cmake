@@ -82,11 +82,11 @@ endif()
 
 
 # Check if DGEMM exists in proposed BLAS_LIBRARIES
-check_dgemm_exists( BLAS_LIBRARIES 
-                    BLAS_LINK_OK BLAS_FORTRAN_LOWER BLAS_FORTRAN_UNDERSCORE )
+check_fortran_function_exists( dgemm BLAS BLAS_LIBRARIES
+                               BLAS_LINK_OK BLAS_FORTRAN_LOWER BLAS_FORTRAN_UNDERSCORE )
 
 
-# If BLAS linkage sucessful, check if it is ILP64/LP64
+# If BLAS linkage successful, check if it is ILP64/LP64
 if( BLAS_LINK_OK )
 
   set( _dgemm_name "dgemm" )

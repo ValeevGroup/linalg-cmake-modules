@@ -211,3 +211,79 @@ function( append_possibly_missing_libs _linker_test __compile_output _orig_libs 
   set( ${__new_libs} "${_tmp_libs}" PARENT_SCOPE )
 
 endfunction()
+
+# _func = lowercase symbol name
+# _namespace = namespace (BLAS, LAPACK, etc.)
+function( check_fortran_function_exists _func _namespace _libs _link_ok _uses_lower _uses_underscore )
+
+  set( ${_link_ok} FALSE )
+  set( ${_uses_lower} )
+  set( ${_uses_underscore} )
+
+  foreach( _uplo LOWER UPPER )
+
+    set( _${_func}_name_template "${_func}" )
+    string( TO${_uplo} ${_${_func}_name_template} _${_func}_name_uplo )
+
+    foreach( _under UNDERSCORE NO_UNDERSCORE )
+
+      set( _item ${namespace}_${_uplo}_${_under} )
+      if( _under EQUAL "UNDERSCORE" )
+        set( _${_func}_name "${_${_func}_name_uplo}_" )
+      else()
+        set( _${_func}_name "${_${_func}_name_uplo}_" )
+      endif()
+
+      check_function_exists_w_results(
+              "${${_libs}}" ${_${_func}_name} _compile_output _compile_result
+      )
+
+      message( STATUS "Performing Test ${_item}" )
+      if( _compile_result )
+
+        message( STATUS "Performing Test ${_item} -- found" )
+        set( ${_link_ok} TRUE )
+        string( COMPARE EQUAL "${_uplo}"  "LOWER"      ${_uses_lower}      )
+        string( COMPARE EQUAL "${_under}" "UNDERSCORE" ${_uses_underscore} )
+        break()
+
+      else()
+
+        append_possibly_missing_libs( ${namespace} _compile_output ${_libs} _new_libs )
+        list( APPEND ${_libs} ${_new_libs} )
+        set( ${_libs} ${${_libs}} PARENT_SCOPE )
+
+
+        # Recheck Compilation
+        check_function_exists_w_results(
+                "${${_libs}}" ${_${_func}_name} _compile_output _compile_result
+        )
+
+        if( _compile_result )
+          message( STATUS "Performing Test ${_item} -- found" )
+          set( ${_link_ok} TRUE )
+          string( COMPARE EQUAL "${_uplo}"  "LOWER"      ${_uses_lower}      )
+          string( COMPARE EQUAL "${_under}" "UNDERSCORE" ${_uses_underscore} )
+          break()
+        else()
+          message( STATUS "Performing Test ${_item} -- not found" )
+        endif()
+
+      endif()
+
+    endforeach()
+
+    if( ${${_link_ok}} )
+      break()
+    endif()
+
+    unset( _${_func}_name_template )
+    unset( _${_func}_name_uplo     )
+  endforeach()
+
+
+  set( ${_link_ok}         ${${_link_ok}}         PARENT_SCOPE )
+  set( ${_uses_lower}      ${${_uses_lower}}      PARENT_SCOPE )
+  set( ${_uses_underscore} ${${_uses_underscore}} PARENT_SCOPE )
+
+endfunction()

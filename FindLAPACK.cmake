@@ -37,25 +37,31 @@ if( NOT LAPACK_LIBRARIES )
 
   # Find BLAS
   if( NOT TARGET BLAS::BLAS )
-    copy_meta_data( LAPACK BLAS )	  
-    find_dependency( BLAS 
-      COMPONENTS          ${LAPACK_REQUIRED_COMPONENTS} 
-      OPTIONAL_COMPONENTS ${LAPACK_OPTIONAL_COMPONENTS} 
+    copy_meta_data( LAPACK BLAS )
+    find_dependency( BLAS
+      COMPONENTS          ${LAPACK_REQUIRED_COMPONENTS}
+      OPTIONAL_COMPONENTS ${LAPACK_OPTIONAL_COMPONENTS}
     )
   endif()
-  
+
   # Check if BLAS contains a LAPACK linker
   message( STATUS "LAPACK_LIBRARIES Not Given: Checking for LAPACK in BLAS" )
   set( LAPACK_LIBRARIES           ${BLAS_LIBRARIES}           )
   set( LAPACK_INCLUDE_DIRS        ${BLAS_INCLUDE_DIRS}        )
   set( LAPACK_COMPILE_DEFINITIONS ${BLAS_COMPILE_DEFINITIONS} )
-  check_dgesvd_exists( LAPACK_LIBRARIES
-    BLAS_HAS_LAPACK LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
-  )
-  
-  
+  # use dpstrf to check for full LAPACK API ... some implementations are incomplete (e.g. older OpenBLAS)
+  check_fortran_function_exists( dpstrf LAPACK LAPACK_LIBRARIES
+          BLAS_HAS_LAPACK LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
+          )
+
   # If BLAS has a full LAPACK Linker, propagate vars
   if( BLAS_HAS_LAPACK )
+
+    # handle corner cases:
+    # - OpenBLAS needs libgfortran only for some functions, dpstrf is not one of them
+    check_fortran_function_exists( dgesvd LAPACK LAPACK_LIBRARIES
+            LAPACK_EXTENDED_LINKAGE_CHECK_1 LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
+            )
 
     message( STATUS "BLAS Has A Full LAPACK Linker" )
     set( LAPACK_VENDOR          ${BLAS_VENDOR}          )
@@ -79,9 +85,9 @@ if( NOT LAPACK_LIBRARIES )
 
       copy_meta_data( LAPACK ${lapack_type} )
 
-      find_package( ${lapack_type} 
-        COMPONENTS          ${LAPACK_REQUIRED_COMPONENTS} 
-        OPTIONAL_COMPONENTS ${LAPACK_OPTIONAL_COMPONENTS} 
+      find_package( ${lapack_type}
+        COMPONENTS          ${LAPACK_REQUIRED_COMPONENTS}
+        OPTIONAL_COMPONENTS ${LAPACK_OPTIONAL_COMPONENTS}
       )
 
       if( ${lapack_type}_FOUND )
@@ -120,12 +126,18 @@ endif()
 if( BLAS_HAS_LAPACK )
   set( LAPACK_LINK_OK TRUE )
 else()
-  check_dgesvd_exists( LAPACK_LIBRARIES
-    LAPACK_LINK_OK LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
-  )
+  check_fortran_function_exists( dpstrf LAPACK LAPACK_LIBRARIES
+          LAPACK_LINK_OK LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
+          )
+
+  # handle corner cases:
+  # - OpenBLAS needs libgfortran only for some functions, dpstrf is not one of them
+  check_fortran_function_exists( dgesvd LAPACK LAPACK_LIBRARIES
+          LAPACK_EXTENDED_LINKAGE_CHECK_1 LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
+          )
 endif()
 
-# If LAPACK linkage sucessful, check if it is ILP64/LP64
+# If LAPACK linkage successful, check if it is ILP64/LP64
 if( LAPACK_LINK_OK )
 
   set( _dsyev_name "dsyev" )
@@ -174,7 +186,7 @@ if( LAPACK_FOUND )
 endif()
 
 if( LAPACK_FOUND AND NOT TARGET LAPACK::LAPACK )
-  
+
   add_library( LAPACK::LAPACK INTERFACE IMPORTED )
   set_target_properties( LAPACK::LAPACK PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${LAPACK_INCLUDE_DIRS}"
