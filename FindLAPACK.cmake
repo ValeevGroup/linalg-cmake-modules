@@ -49,19 +49,16 @@ if( NOT LAPACK_LIBRARIES )
   set( LAPACK_LIBRARIES           ${BLAS_LIBRARIES}           )
   set( LAPACK_INCLUDE_DIRS        ${BLAS_INCLUDE_DIRS}        )
   set( LAPACK_COMPILE_DEFINITIONS ${BLAS_COMPILE_DEFINITIONS} )
+
   # use dpstrf to check for full LAPACK API ... some implementations are incomplete (e.g. older OpenBLAS)
-  check_fortran_function_exists( dpstrf LAPACK LAPACK_LIBRARIES
+  # also need to handle several corner cases:
+  # - OpenBLAS needs libgfortran only for some functions, dpstrf is not one of them, so check for dgesvd
+  check_fortran_functions_exist( "dpstrf;dgesvd" LAPACK LAPACK_LIBRARIES
           BLAS_HAS_LAPACK LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
           )
 
   # If BLAS has a full LAPACK Linker, propagate vars
   if( BLAS_HAS_LAPACK )
-
-    # handle corner cases:
-    # - OpenBLAS needs libgfortran only for some functions, dpstrf is not one of them
-    check_fortran_function_exists( dgesvd LAPACK LAPACK_LIBRARIES
-            LAPACK_EXTENDED_LINKAGE_CHECK_1 LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
-            )
 
     message( STATUS "BLAS Has A Full LAPACK Linker" )
     set( LAPACK_VENDOR          ${BLAS_VENDOR}          )
@@ -126,14 +123,9 @@ endif()
 if( BLAS_HAS_LAPACK )
   set( LAPACK_LINK_OK TRUE )
 else()
-  check_fortran_function_exists( dpstrf LAPACK LAPACK_LIBRARIES
+  # see notes above the first invocation of check_fortran_functions_exist
+  check_fortran_functions_exist( "dpstrf;dgesvd" LAPACK LAPACK_LIBRARIES
           LAPACK_LINK_OK LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
-          )
-
-  # handle corner cases:
-  # - OpenBLAS needs libgfortran only for some functions, dpstrf is not one of them
-  check_fortran_function_exists( dgesvd LAPACK LAPACK_LIBRARIES
-          LAPACK_EXTENDED_LINKAGE_CHECK_1 LAPACK_FORTRAN_LOWER LAPACK_FORTRAN_UNDERSCORE
           )
 endif()
 

@@ -212,9 +212,9 @@ function( append_possibly_missing_libs _linker_test __compile_output _orig_libs 
 
 endfunction()
 
-# _func = lowercase symbol name
+# _funcs = LIST of lowercase symbol name
 # _namespace = namespace (BLAS, LAPACK, etc.)
-function( check_fortran_function_exists _func _namespace _libs _link_ok _uses_lower _uses_underscore )
+function( check_fortran_functions_exist _funcs _namespace _libs _link_ok _uses_lower _uses_underscore )
 
   set( ${_link_ok} FALSE )
   set( ${_uses_lower} )
@@ -222,64 +222,66 @@ function( check_fortran_function_exists _func _namespace _libs _link_ok _uses_lo
 
   foreach( _uplo LOWER UPPER )
 
-    set( _${_func}_name_template "${_func}" )
-    string( TO${_uplo} ${_${_func}_name_template} _${_func}_name_uplo )
-
     foreach( _under UNDERSCORE NO_UNDERSCORE )
 
-      set( _item ${namespace}_${_uplo}_${_under} )
-      if( _under EQUAL "UNDERSCORE" )
-        set( _${_func}_name "${_${_func}_name_uplo}_" )
-      else()
-        set( _${_func}_name "${_${_func}_name_uplo}_" )
-      endif()
-
-      check_function_exists_w_results(
-              "${${_libs}}" ${_${_func}_name} _compile_output _compile_result
-      )
-
+      set( _item ${_namespace}_${_uplo}_${_under} )
       message( STATUS "Performing Test ${_item}" )
-      if( _compile_result )
 
-        message( STATUS "Performing Test ${_item} -- found" )
-        set( ${_link_ok} TRUE )
-        string( COMPARE EQUAL "${_uplo}"  "LOWER"      ${_uses_lower}      )
-        string( COMPARE EQUAL "${_under}" "UNDERSCORE" ${_uses_underscore} )
-        break()
+      # ask linker for each symbol in _funcs, exit early if any fail
+      foreach( _func IN LISTS _funcs)
 
-      else()
+        set( _${_func}_name_template "${_func}" )
+        string( TO${_uplo} ${_${_func}_name_template} _${_func}_name_uplo )
+        if( _under EQUAL "UNDERSCORE" )
+          set( _${_func}_name "${_${_func}_name_uplo}_" )
+        else()
+          set( _${_func}_name "${_${_func}_name_uplo}_" )
+        endif()
 
-        append_possibly_missing_libs( ${namespace} _compile_output ${_libs} _new_libs )
-        list( APPEND ${_libs} ${_new_libs} )
-        set( ${_libs} ${${_libs}} PARENT_SCOPE )
-
-
-        # Recheck Compilation
         check_function_exists_w_results(
-                "${${_libs}}" ${_${_func}_name} _compile_output _compile_result
+              "${${_libs}}" ${_${_func}_name} _compile_output _compile_result
         )
 
+        if( NOT _compile_result )
+
+          append_possibly_missing_libs( ${_namespace} _compile_output ${_libs} _new_libs )
+          list( APPEND ${_libs} ${_new_libs} )
+          set( ${_libs} ${${_libs}} PARENT_SCOPE )
+
+          # try linking again
+          check_function_exists_w_results(
+                "${${_libs}}" ${_${_func}_name} _compile_output _compile_result
+          )
+
+        endif()
+
+        unset( _${_func}_name_template )
+        unset( _${_func}_name_uplo     )
+
         if( _compile_result )
-          message( STATUS "Performing Test ${_item} -- found" )
           set( ${_link_ok} TRUE )
           string( COMPARE EQUAL "${_uplo}"  "LOWER"      ${_uses_lower}      )
           string( COMPARE EQUAL "${_under}" "UNDERSCORE" ${_uses_underscore} )
-          break()
         else()
-          message( STATUS "Performing Test ${_item} -- not found" )
+          break()  # early exit foreach if linking failed for any symbol even with extra libs
         endif()
 
+      endforeach()  # _funcs
+
+      if( ${${_link_ok}} )
+        message( STATUS "Performing Test ${_item} -- found" )
+        break()
+      else ()
+        message( STATUS "Performing Test ${_item} -- not found" )
       endif()
 
-    endforeach()
+    endforeach()  # underscore
 
     if( ${${_link_ok}} )
       break()
     endif()
 
-    unset( _${_func}_name_template )
-    unset( _${_func}_name_uplo     )
-  endforeach()
+  endforeach()  # lowerupper
 
 
   set( ${_link_ok}         ${${_link_ok}}         PARENT_SCOPE )

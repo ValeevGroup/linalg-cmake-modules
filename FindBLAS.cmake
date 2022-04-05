@@ -82,7 +82,7 @@ endif()
 
 
 # Check if DGEMM exists in proposed BLAS_LIBRARIES
-check_fortran_function_exists( dgemm BLAS BLAS_LIBRARIES
+check_fortran_functions_exist( dgemm BLAS BLAS_LIBRARIES
                                BLAS_LINK_OK BLAS_FORTRAN_LOWER BLAS_FORTRAN_UNDERSCORE )
 
 
