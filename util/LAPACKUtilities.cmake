@@ -10,6 +10,10 @@ function( check_lapack_int _libs _dsyev_name _libs_are_lp64 )
             RUN_OUTPUT_VARIABLE     _run_output
             )
 
+    if (NOT _compile_result)
+        message(FATAL_ERROR "check_lapack_int: try_run failed: _compile_output=${_compile_output}")
+    endif()
+
     if( _run_output MATCHES "LAPACK IS LP64" )
         set( ${_libs_are_lp64} TRUE PARENT_SCOPE )
     else()

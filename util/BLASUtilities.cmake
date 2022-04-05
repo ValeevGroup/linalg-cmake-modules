@@ -10,6 +10,10 @@ try_run( _run_result _compile_result ${CMAKE_CURRENT_BINARY_DIR}
   RUN_OUTPUT_VARIABLE     _run_output
 )
 
+if (NOT _compile_result)
+  message(FATAL_ERROR "check_blas_int: try_run failed: _compile_output=${_compile_output}")
+endif()
+
 if( _run_output MATCHES "BLAS IS LP64" )
   set( ${_libs_are_lp64} TRUE PARENT_SCOPE )
 else()
