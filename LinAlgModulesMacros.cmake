@@ -40,6 +40,7 @@ set( LINALG_FIND_MODULES
 )
 
 set( LINALG_UTIL_FILES
+     util/BLASUtilities.cmake
      util/blis_int_size.c
      util/func_check.c
      util/get_mpi_vendor.c
